@@ -62,9 +62,10 @@
 
       for (const table of tables) {
 
-        data = table.match(/CREATE TABLE\s?(?: IF NOT EXISTS)?\s\w+\.(\w+)\s+\(([\w\s,\(\)]+?)?\);/);
+        data = table.match(/CREATE TABLE\s?(?: IF NOT EXISTS)?\s(\w+\.)?(\w+)\s+\(([\w\s,\(\)]+?)?\);/);
+        console.log(data);
 
-        const tableNameMatch = data[1];
+        const tableNameMatch = data[2];
 
 
         if (!tableNameMatch) {
@@ -74,7 +75,7 @@
 
         goStructs += `type ${tableName} struct {\n`;
 
-        const columns = data[2].split(/\,/);
+        const columns = data[3].split(/\,/);
 
         if (!columns) {
           alert('columns not found')
