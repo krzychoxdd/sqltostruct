@@ -44,6 +44,10 @@
 <body>
   <h1>SQL Create table to golang struct</h1>
   <form>
+    <select id="db">
+      <option value="postgresql" selected="selected">PostgreSQL</option>
+      <option value="mysql">MySQL</option>
+    </select>
     <label for="sql">SQL:</label>
     <textarea id="sql"></textarea>
     <label for="output">OUTPUT:</label>
@@ -70,10 +74,12 @@
         if (!columns) {
           continue;
         }
-        const columnDefs = columns[1].split(/,\s*\n+/);
+        const columnDefs = columns[1].match(/(?:[^,\s]+|'(?:[^'\\]|\\.)*')+/g);
+
 
         for (const columnDef of columnDefs) {
           const columnMatch = columnDef.match(/(\w+)\s+(\w+)/);
+
           if (!columnMatch) {
             continue;
           }
@@ -81,25 +87,90 @@
           const columnType = columnMatch[2];
 
           let goType = '';
-          switch (columnType.toUpperCase()) {
-            case 'UUID':
-              goType = 'string';
-              break;
-            case 'VARCHAR':
-              goType = 'string';
-              break;
-            case 'INTEGER':
-              goType = 'int';
-              break;
-            case 'FLOAT':
-              goType = 'float64';
-              break;
-            default:
-              goType = 'interface{}';
-              break;
+          const db = document.getElementById('db').value;
+          if (db == "postgresql") {
+            switch (columnType.toUpperCase()) {
+              case 'UUID':
+                goType = 'string';
+                break;
+              case 'VARCHAR':
+              case 'TEXT':
+                goType = 'string';
+                break;
+              case 'INTEGER':
+              case 'BIGINT':
+                goType = 'int64';
+                break;
+              case 'SMALLINT':
+                goType = 'int16';
+                break;
+              case 'REAL':
+                goType = 'float32';
+                break;
+              case 'DOUBLE PRECISION':
+              case 'NUMERIC':
+                goType = 'float64';
+                break;
+              case 'BOOLEAN':
+                goType = 'bool';
+                break;
+              case 'DATE':
+                goType = 'time.Time';
+                break;
+              case 'TIMESTAMP':
+              case 'TIMESTAMP WITH TIME ZONE':
+              case 'TIMESTAMP WITHOUT TIME ZONE':
+                goType = 'time.Time';
+                break;
+              // Dodaj inne mapowania typów danych PostgreSQL na Go, jeśli są potrzebne
+              default:
+                goType = 'interface{}';
+                break;
+            }
+          } else if (db == "mysql") {
+            switch (columnType.toUpperCase()) {
+              case 'CHAR':
+              case 'VARCHAR':
+              case 'TEXT':
+              case 'ENUM':
+              case 'SET':
+                goType = 'string';
+                break;
+              case 'TINYINT':
+              case 'SMALLINT':
+                goType = 'int16';
+                break;
+              case 'MEDIUMINT':
+              case 'INT':
+              case 'INTEGER':
+                goType = 'int32';
+                break;
+              case 'BIGINT':
+                goType = 'int64';
+                break;
+              case 'FLOAT':
+                goType = 'float32';
+                break;
+              case 'DOUBLE':
+              case 'DECIMAL':
+                goType = 'float64';
+                break;
+              case 'DATE':
+              case 'TIME':
+              case 'DATETIME':
+              case 'TIMESTAMP':
+                goType = 'time.Time';
+                break;
+              // Dodaj inne mapowania typów danych MySQL na Go, jeśli są potrzebne
+              default:
+                goType = 'interface{}';
+                break;
+            }
+          } else {
+            alert('error')
           }
 
-          goStructs += `  ${columnName} ${goType} \`json:"${columnName}" db:"${columnName}"\`\n`;
+          goStructs += `  ${columnName} ${goType}\n`;
         }
 
         goStructs += '}\n\n';
