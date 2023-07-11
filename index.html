@@ -61,7 +61,10 @@
       const tables = sql.split(/;\s*\n+/);
 
       for (const table of tables) {
-        const tableNameMatch = table.match(/CREATE TABLE(?: IF NOT EXISTS)?\s+(?:\w+\.)?(\w+)/);
+
+        data = table.match(/CREATE TABLE\s?(?: IF NOT EXISTS)?\s\w+\.(\w+)\s+\(([\w\s,\(\)]+?)?\);/);
+
+        const tableNameMatch = data[1];
 
         if (!tableNameMatch) {
           continue;
@@ -70,15 +73,15 @@
 
         goStructs += `type ${tableName} struct {\n`;
 
-        const columns = table.match(/\(([\s\S]+?)\)/);
+        const columns = data[2].split(/\,/);
+
         if (!columns) {
+          alert('columns not found')
           continue;
         }
-        const columnDefs = columns[1].match(/(?:[^,\s]+|'(?:[^'\\]|\\.)*')+/g);
 
-
-        for (const columnDef of columnDefs) {
-          const columnMatch = columnDef.match(/(\w+)\s+(\w+)/);
+        for (const column of columns) {
+          const columnMatch = column.match(/(\w+)\s+(\w+)/);
 
           if (!columnMatch) {
             continue;
