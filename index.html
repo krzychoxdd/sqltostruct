@@ -66,10 +66,11 @@
 
         const tableNameMatch = data[1];
 
+
         if (!tableNameMatch) {
           continue;
         }
-        const tableName = tableNameMatch[1];
+        const tableName = firstLetterUpperCase(snakeToCamel(tableNameMatch));
 
         goStructs += `type ${tableName} struct {\n`;
 
@@ -173,7 +174,10 @@
             alert('error')
           }
 
-          goStructs += `  ${columnName} ${goType}\n`;
+
+
+          newColumnName = idToUpperCase(firstLetterUpperCase(snakeToCamel(columnName)))
+          goStructs += `  ${newColumnName} ${goType}\n`;
         }
 
         goStructs += '}\n\n';
@@ -191,6 +195,23 @@
       const resultDiv = document.getElementById('result');
       const goStructs = convertSQLToGo(sql);
       resultDiv.innerText = goStructs;
+    }
+
+    function firstLetterUpperCase(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1)
+    }
+
+    function snakeToCamel(str) {
+      return str.toLowerCase().replace(/([-_][a-z])/g, group =>
+        group
+          .toUpperCase()
+          .replace('-', '')
+          .replace('_', '')
+      );
+    }
+
+    function idToUpperCase(str) {
+      return str.replace(/id|Id|iD/, "ID")
     }
   </script>
 </body>
